@@ -1,0 +1,32 @@
+﻿globalTimeout: 1200
+testSuiteTimeout: 600
+testSuiteStep: 50
+
+runson: win 
+
+matrix:
+  browser: [chrome, firefox] 
+
+maxRetries: 1  
+
+concurrency: 2  
+
+pre:
+  - dotnet build 
+  - pwsh bin\Debug\net9.0\playwright.ps1 install 
+
+testDiscovery:
+  type: dotnet
+  args: ["test", "--filter", "FullyQualifiedName~PlaywrightC_TestProject.lambda_tests"]
+
+testRunnerCommand: 
+  - dotnet test --filter "FullyQualifiedName~PlaywrightC_TestProject.lambda_tests"
+
+post:
+  - mkdir test-artifacts
+  - move bin\Debug\net9.0\TestResults\*.trx test-artifacts/
+  - move test-output/* test-artifacts/  
+
+uploadArtefacts:
+  - name: Test Reports
+    path: test-artifacts/*
