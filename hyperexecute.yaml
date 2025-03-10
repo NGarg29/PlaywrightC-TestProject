@@ -1,32 +1,16 @@
-﻿globalTimeout: 1200
-testSuiteTimeout: 600
-testSuiteStep: 50
+globalTimeout: 1800
+runson: win
+version: latest
 
-runson: win 
+preRun:
+  - dotnet build --configuration Release
+  - pwsh -Command "npx playwright install"
 
-matrix:
-  browser: [chrome, firefox] 
+testSuite:
+  playwrightTests:
+    command: dotnet test lambda-tests/test.spec.cs --logger:"trx;LogFileName=TestResults.trx"
+    artifacts:
+      - test-output/
 
-maxRetries: 1  
-
-concurrency: 2  
-
-pre:
-  - dotnet build 
-  - pwsh bin\Debug\net9.0\playwright.ps1 install 
-
-testDiscovery:
-  type: dotnet
-  args: ["test", "--filter", "FullyQualifiedName~PlaywrightC_TestProject.lambda_tests"]
-
-testRunnerCommand: 
-  - dotnet test --filter "FullyQualifiedName~PlaywrightC_TestProject.lambda_tests"
-
-post:
-  - mkdir test-artifacts
-  - move bin\Debug\net9.0\TestResults\*.trx test-artifacts/
-  - move test-output/* test-artifacts/  
-
-uploadArtefacts:
-  - name: Test Reports
-    path: test-artifacts/*
+retryOnFailure: true
+uploadArtefacts: true
